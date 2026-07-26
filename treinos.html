@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGC · Treinos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/pdf-utils.js"></script>
+  <script>renderShell("Treinos");</script>
+
+  <div class="modal-backdrop" id="modalTreino">
+    <div class="modal">
+      <div class="modal-header"><h3>Novo treino</h3><button class="close-x" onclick="fecharModalTreino()">✕</button></div>
+      <form id="formTreino">
+        <div class="field"><label>Número do treino</label><input type="number" id="t_numero"></div>
+        <div class="field"><label>Dia da semana</label>
+          <select id="t_dia_semana">
+            <option>Segunda-feira</option><option>Terça-feira</option><option>Quarta-feira</option>
+            <option>Quinta-feira</option><option>Sexta-feira</option><option>Sábado</option><option>Domingo</option>
+          </select>
+        </div>
+        <div class="field"><label>Dia do calendário</label><input type="date" id="t_data"></div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn btn-outline" onclick="fecharModalTreino()">Cancelar</button>
+          <button type="submit" class="btn">Criar treino</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <button class="fab" onclick="abrirModalTreino()">+</button>
+
+  <script src="js/treinos.js"></script>
+  <script>iniciarTreinos();</script>
+</body>
+</html>
