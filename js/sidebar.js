@@ -40,7 +40,16 @@ function renderShell(pageTitle) {
           <button class="toggle-btn" id="toggleSidebar" title="Expandir/Fechar menu">☰</button>
         </div>
         <ul class="nav-menu">${menuHtml}</ul>
-        <div class="sidebar-foot"><span>Núcleo SCP Castelo Branco</span></div>
+        <div class="sidebar-foot">
+          <div class="logo-controls">
+            <input id="logoInput" type="file" accept="image/*" style="display:none">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-outline" id="logoBtn" title="Alterar emblema">Alterar emblema</button>
+              <button class="btn" id="logoRemoveBtn" title="Remover emblema">Remover emblema</button>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.6)">Núcleo SCP Castelo Branco</div>
+          </div>
+        </div>
       </aside>
       <div class="main">
         <div class="topbar">
@@ -64,6 +73,44 @@ function renderShell(pageTitle) {
     localStorage.setItem("sgc_sidebar_collapsed", sb.classList.contains("collapsed") ? "1" : "0");
   });
   document.getElementById("logoutBtn").addEventListener("click", logout);
+
+  // logo upload handlers
+  const logoInput = document.getElementById('logoInput');
+  const logoBtn = document.getElementById('logoBtn');
+  const logoRemoveBtn = document.getElementById('logoRemoveBtn');
+  function applyLogo(dataUrl) {
+    window.logoDataUrl = dataUrl;
+    document.querySelectorAll('.brand-logo, .topbar-logo').forEach(img => {
+      img.src = dataUrl;
+      img.style.display = 'inline-block';
+    });
+    document.querySelectorAll('.brand-dot').forEach(d => d.style.display = 'none');
+  }
+  // initialize from saved logo (localStorage)
+  const saved = localStorage.getItem('sgc_logo_dataurl');
+  if (saved) applyLogo(saved);
+
+  if (logoBtn) logoBtn.addEventListener('click', () => logoInput && logoInput.click());
+  if (logoInput) logoInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      localStorage.setItem('sgc_logo_dataurl', dataUrl);
+      applyLogo(dataUrl);
+      showToast('Emblema atualizado.');
+    };
+    reader.readAsDataURL(f);
+  });
+  if (logoRemoveBtn) logoRemoveBtn.addEventListener('click', () => {
+    localStorage.removeItem('sgc_logo_dataurl');
+    window.logoDataUrl = null;
+    // fallback to static file (logo.png) if exists; let onerror hide it
+    document.querySelectorAll('.brand-logo, .topbar-logo').forEach(img => { img.src = 'logo.png'; img.style.display = ''; });
+    document.querySelectorAll('.brand-dot').forEach(d => d.style.display = 'flex');
+    showToast('Emblema removido.');
+  });
 }
 
 function showToast(msg) {
