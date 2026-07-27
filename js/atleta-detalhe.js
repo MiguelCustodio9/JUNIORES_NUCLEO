@@ -6,6 +6,43 @@ function getIdFromUrl() {
   return new URLSearchParams(window.location.search).get("id");
 }
 
+// Simple reusable modal input helper — returns value string or null if cancelled
+function showInputModal({ title = "", label = "", placeholder = "", defaultValue = "", multiline = false } = {}) {
+  return new Promise(resolve => {
+    const id = 'modal-' + Date.now();
+    const inputHtml = multiline
+      ? `<textarea id="${id}-input" rows="5" style="width:100%">${defaultValue || ''}</textarea>`
+      : `<input id="${id}-input" type="text" value="${(defaultValue||'').replace(/"/g,'&quot;')}" placeholder="${placeholder.replace(/"/g,'&quot;')}" style="width:100%"/>`;
+
+    const html = `
+      <div class="modal-backdrop" id="${id}">
+        <div class="modal">
+          <h3>${title}</h3>
+          <div style="margin-top:8px;margin-bottom:8px">${label}</div>
+          ${inputHtml}
+          <div style="text-align:right;margin-top:12px">
+            <button class="btn" id="${id}-ok">Confirmar</button>
+            <button class="btn btn-outline" id="${id}-cancel">Cancelar</button>
+          </div>
+        </div>
+      </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    const backdrop = document.getElementById(id);
+
+    function cleanup(value) {
+      backdrop.remove();
+      resolve(value);
+    }
+
+    document.getElementById(`${id}-ok`).addEventListener('click', () => {
+      const val = document.getElementById(`${id}-input`).value.trim();
+      cleanup(val === '' ? null : val);
+    });
+    document.getElementById(`${id}-cancel`).addEventListener('click', () => cleanup(null));
+  });
+}
+
 let atletaAtual = null;
 
 async function iniciarFichaAtleta() {
@@ -137,9 +174,12 @@ async function carregarNotas() {
   `).join("") || `<tr><td colspan="4" style="color:var(--cinza-500)">Sem registos.</td></tr>`;
 }
 async function novaNota() {
-  const periodo = prompt("Período (ex: 1º Período):"); if (!periodo) return;
-  const disciplina = prompt("Disciplina:"); if (!disciplina) return;
-  const nota = prompt("Nota:"); if (!nota) return;
+  const periodo = await showInputModal({ title: 'Nova nota escolar', label: 'Período (ex.: 1.º Período):', placeholder: '1.º Período' });
+  if (!periodo) return;
+  const disciplina = await showInputModal({ title: 'Nova nota escolar', label: 'Disciplina:', placeholder: 'Ex.: Matemática' });
+  if (!disciplina) return;
+  const nota = await showInputModal({ title: 'Nova nota escolar', label: 'Nota obtida:', placeholder: 'Ex.: 14.5' });
+  if (!nota) return;
   await supabaseClient.from("notas_escolares").insert({ atleta_id: atletaAtual.id, periodo, disciplina, nota });
   carregarNotas();
 }
@@ -154,9 +194,10 @@ async function carregarLesoes() {
   `).join("") || `<tr><td colspan="5" style="color:var(--cinza-500)">Sem lesões registadas.</td></tr>`;
 }
 async function novaLesao() {
-  const titulo = prompt("Título da lesão:"); if (!titulo) return;
-  const descricao = prompt("Descrição breve:") || "";
-  const tempo_recuperacao = prompt("Tempo de recuperação previsto:") || "";
+  const titulo = await showInputModal({ title: 'Nova lesão', label: 'Título da lesão:', placeholder: 'Ex.: Entorse do tornozelo' });
+  if (!titulo) return;
+  const descricao = await showInputModal({ title: 'Nova lesão', label: 'Descrição breve (opcional):', placeholder: 'Detalhes e contexto', multiline: true }) || "";
+  const tempo_recuperacao = await showInputModal({ title: 'Nova lesão', label: 'Tempo de recuperação previsto (opcional):', placeholder: 'Ex.: 4 semanas' }) || "";
   await supabaseClient.from("lesoes").insert({ atleta_id: atletaAtual.id, titulo, descricao, tempo_recuperacao });
   carregarLesoes();
 }
@@ -170,13 +211,15 @@ async function carregarSaude() {
   `).join("") || `<tr><td colspan="3" style="color:var(--cinza-500)">Sem registos.</td></tr>`;
 }
 async function novoHistoricoSaude() {
-  const descricao = prompt("Descrição do registo de saúde:"); if (!descricao) return;
+  const descricao = await showInputModal({ title: 'Novo registo de saúde', label: 'Descrição do registo de saúde:', placeholder: 'Descreva o incidente ou observação', multiline: true });
+  if (!descricao) return;
   await supabaseClient.from("historico_saude").insert({ atleta_id: atletaAtual.id, descricao });
   carregarSaude();
 }
 
 async function eliminarLinha(tabela, id, callback) {
-  if (!confirm("Eliminar este registo?")) return;
+  const confirmar = await showConfirmModal({ title: 'Confirmação', message: 'Tem a certeza de que pretende eliminar este registo?' });
+  if (!confirmar) return;
   await supabaseClient.from(tabela).delete().eq("id", id);
   callback();
 }

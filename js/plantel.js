@@ -149,7 +149,7 @@ async function guardarAtleta(e) {
   };
 
   if (!payload.nome_curto || !payload.nome_completo) {
-    alert("Preenche pelo menos o nome curto e o nome completo.");
+    await showAlertModal("Por favor, preencha pelo menos o nome curto e o nome completo.");
     return;
   }
 
@@ -158,17 +158,18 @@ async function guardarAtleta(e) {
     : supabaseClient.from("atletas").insert(payload);
 
   const { error } = await query;
-  if (error) { alert("Erro ao guardar: " + error.message); return; }
+  if (error) { await showAlertModal("Ocorreu um erro ao guardar: " + error.message); return; }
 
   fecharModal();
-  showToast("Atleta guardada.");
+  showToast("Atleta guardada com sucesso.");
   carregarAtletas();
 }
 
 async function eliminarAtleta(id) {
-  if (!confirm("Eliminar esta atleta e todos os seus dados associados?")) return;
+  const confirmar = await showConfirmModal({ title: 'Confirmação', message: 'Tem a certeza de que pretende eliminar esta atleta e todos os seus dados associados?' });
+  if (!confirmar) return;
   const { error } = await supabaseClient.from("atletas").delete().eq("id", id);
-  if (error) { alert("Erro ao eliminar: " + error.message); return; }
-  showToast("Atleta eliminada.");
+  if (error) { await showAlertModal("Ocorreu um erro ao eliminar: " + error.message); return; }
+  showToast("Atleta eliminada com sucesso.");
   carregarAtletas();
 }

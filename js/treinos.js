@@ -17,11 +17,27 @@ async function carregarTreinos() {
     return;
   }
   cont.innerHTML = data.map(t => `
-    <div class="card" style="margin-bottom:0;cursor:pointer" onclick="abrirTreino('${t.id}')">
-      <div style="font-weight:800">Treino nº ${t.numero ?? "—"}</div>
-      <div style="font-size:12.5px;color:var(--cinza-500)">${t.dia_semana || "—"} · ${t.data_treino || "—"}</div>
+    <div class="card" style="margin-bottom:0;position:relative">
+      <div style="position:absolute;right:12px;top:12px;z-index:6">
+        <button class="icon-btn danger" onclick="event.stopPropagation(); eliminarTreino('${t.id}')">🗑</button>
+      </div>
+      <div style="cursor:pointer" onclick="abrirTreino('${t.id}')">
+        <div style="font-weight:800">Treino nº ${t.numero ?? "—"}</div>
+        <div style="font-size:12.5px;color:var(--cinza-500)">${t.dia_semana || "—"} · ${t.data_treino || "—"}</div>
+      </div>
     </div>
   `).join("");
+}
+
+async function eliminarTreino(id) {
+  const confirmar = await showConfirmModal({ title: 'Confirmação', message: 'Tem a certeza de que pretende eliminar o treino e as presenças associadas?' });
+  if (!confirmar) return;
+  await Promise.all([
+    supabaseClient.from('treino_presencas').delete().eq('treino_id', id),
+    supabaseClient.from('treinos').delete().eq('id', id),
+  ]);
+  showToast('Treino eliminado com sucesso.');
+  carregarTreinos();
 }
 
 function abrirModalTreino() { document.getElementById("modalTreino").classList.add("open"); }
@@ -36,9 +52,9 @@ document.addEventListener("submit", async (e) => {
     data_treino: document.getElementById("t_data").value || null,
   };
   const { error } = await supabaseClient.from("treinos").insert(payload);
-  if (error) { alert("Erro: " + error.message); return; }
+  if (error) { await showAlertModal("Ocorreu um erro ao criar o treino: " + error.message); return; }
   fecharModalTreino();
-  showToast("Treino criado.");
+  showToast("Treino criado com sucesso.");
   carregarTreinos();
 });
 
@@ -94,7 +110,7 @@ async function guardarPresenca(atletaId, estado, cansaco) {
   } else {
     await supabaseClient.from("treino_presencas").insert(payload);
   }
-  showToast("Guardado.");
+  showToast("Alterações guardadas com sucesso.");
 }
 
 async function gerarPdfTreino() {

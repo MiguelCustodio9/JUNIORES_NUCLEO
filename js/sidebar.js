@@ -4,12 +4,12 @@
 
 const MENU_ITEMS = [
   { href: "dashboard.html",     label: "Início",              ico: "🏠" },
-  { href: "jogos.html",         label: "Jogos",                ico: "⚽" },
-  { href: "treinos.html",       label: "Treinos",              ico: "🏋" },
+  { href: "jogos.html",         label: "Jogos",                ico: "⚽️" },
+  { href: "treinos.html",       label: "Treinos",              ico: "🏋️‍♀️" },
   { href: "avaliacoes.html",    label: "Avaliações Físicas",   ico: "📊" },
   { href: "plantel.html",       label: "Plantel",              ico: "👥" },
   { href: "estatisticas.html",  label: "Estatísticas",         ico: "📈" },
-  { href: "presencas.html",     label: "Folha de Presenças",   ico: "📋" },
+  { href: "presencas.html",     label: "Folha de Presenças",   ico: "🗓️" },
 ];
 
 function renderShell(pageTitle) {
@@ -70,6 +70,48 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+// Modal confirm helper — returns true if confirmed
+function showConfirmModal({ title = 'Confirmação', message = '' } = {}) {
+  return new Promise(resolve => {
+    const id = 'confirm-' + Date.now();
+    const html = `
+      <div class="modal-backdrop" id="${id}">
+        <div class="modal">
+          <h3>${title}</h3>
+          <div style="margin-top:8px">${message}</div>
+          <div style="text-align:right;margin-top:12px">
+            <button class="btn" id="${id}-ok">Confirmar</button>
+            <button class="btn btn-outline" id="${id}-cancel">Cancelar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    const backdrop = document.getElementById(id);
+    function cleanup(val) { backdrop.remove(); resolve(val); }
+    document.getElementById(`${id}-ok`).addEventListener('click', () => cleanup(true));
+    document.getElementById(`${id}-cancel`).addEventListener('click', () => cleanup(false));
+  });
+}
+
+// Simple alert modal (non-blocking); returns a promise resolved when closed
+function showAlertModal(message, title = 'Aviso') {
+  return new Promise(resolve => {
+    const id = 'alert-' + Date.now();
+    const html = `
+      <div class="modal-backdrop" id="${id}">
+        <div class="modal">
+          <h3>${title}</h3>
+          <div style="margin-top:8px">${message}</div>
+          <div style="text-align:right;margin-top:12px">
+            <button class="btn" id="${id}-ok">OK</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    document.getElementById(`${id}-ok`).addEventListener('click', () => { document.getElementById(id).remove(); resolve(); });
+  });
 }
 
 function pageContent() {

@@ -33,11 +33,27 @@ async function carregarAvaliacoes() {
     return;
   }
   cont.innerHTML = data.map(av => `
-    <div class="card" style="margin-bottom:0;cursor:pointer" onclick="abrirAvaliacao('${av.id}')">
-      <div style="font-weight:800">${av.titulo}</div>
-      <div style="font-size:12.5px;color:var(--cinza-500)">${av.data_avaliacao || "—"}</div>
+    <div class="card" style="margin-bottom:0;position:relative">
+      <div style="position:absolute;right:12px;top:12px;z-index:6">
+        <button class="icon-btn danger" onclick="event.stopPropagation(); eliminarAvaliacao('${av.id}')">🗑</button>
+      </div>
+      <div style="cursor:pointer" onclick="abrirAvaliacao('${av.id}')">
+        <div style="font-weight:800">${av.titulo}</div>
+        <div style="font-size:12.5px;color:var(--cinza-500)">${av.data_avaliacao || "—"}</div>
+      </div>
     </div>
   `).join("");
+}
+
+async function eliminarAvaliacao(id) {
+  const confirmar = await showConfirmModal({ title: 'Confirmação', message: 'Tem a certeza de que pretende eliminar a avaliação e todos os valores associados?' });
+  if (!confirmar) return;
+  await Promise.all([
+    supabaseClient.from('avaliacao_valores').delete().eq('avaliacao_id', id),
+    supabaseClient.from('avaliacoes_fisicas').delete().eq('id', id),
+  ]);
+  showToast('Avaliação eliminada com sucesso.');
+  carregarAvaliacoes();
 }
 
 function abrirModalAvaliacao() { document.getElementById("modalAvaliacao").classList.add("open"); }
@@ -48,9 +64,9 @@ document.addEventListener("submit", async (e) => {
   e.preventDefault();
   const payload = { titulo: document.getElementById("av_titulo").value, data_avaliacao: document.getElementById("av_data").value || null };
   const { error } = await supabaseClient.from("avaliacoes_fisicas").insert(payload);
-  if (error) { alert("Erro: " + error.message); return; }
+  if (error) { showAlertModal("Ocorreu um erro ao criar a avaliação: " + error.message); return; }
   fecharModalAvaliacao();
-  showToast("Avaliação criada.");
+  showToast("Avaliação criada com sucesso.");
   carregarAvaliacoes();
 });
 
@@ -153,10 +169,10 @@ async function guardarValores(e) {
     ? supabaseClient.from("avaliacao_valores").update(payload).eq("id", existente.id)
     : supabaseClient.from("avaliacao_valores").insert(payload);
   const { error } = await query;
-  if (error) { alert("Erro: " + error.message); return; }
+  if (error) { showAlertModal("Ocorreu um erro ao guardar os valores: " + error.message); return; }
 
   fecharModalValores();
-  showToast("Valores guardados.");
+  showToast("Valores guardados com sucesso.");
   abrirAvaliacao(avaliacaoAtualId);
 }
 
