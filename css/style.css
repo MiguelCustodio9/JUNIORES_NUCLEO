@@ -240,6 +240,10 @@ input[type="checkbox"]:checked{background:var(--verde-600);border-color:var(--ve
 }
 .toast.show{opacity:1;bottom:40px}
 
+/* Horizontal scroll wrapper for wide tables (used in Avaliações) */
+.table-scroll{overflow:auto;width:100%;-webkit-overflow-scrolling:touch}
+.table-scroll table{min-width:900px}
+
 @media (max-width:820px){
   .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%)}
   .sidebar.mobile-open{transform:translateX(0)}

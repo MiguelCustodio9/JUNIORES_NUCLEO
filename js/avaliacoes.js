@@ -86,19 +86,28 @@ async function abrirAvaliacao(id) {
         <h3>${av.titulo} — ${av.data_avaliacao || "—"}</h3>
         <button class="btn" onclick="gerarPdfAvaliacao()">Gerar PDF</button>
       </div>
-      <table>
-        <thead><tr><th>Atleta</th><th>Agach.</th><th>Flexões</th><th>Abdom.</th><th>Sprint 20m</th><th>Sprint 40m</th><th></th></tr></thead>
-        <tbody>
-          ${(atletas || []).map(a => {
-            const v = mapaValores[a.id] || {};
-            return `<tr>
-              <td>${a.nome_curto}</td><td>${v.agachamentos ?? "—"}</td><td>${v.flexoes ?? "—"}</td>
-              <td>${v.abdominais ?? "—"}</td><td>${v.sprint_20m ?? "—"}</td><td>${v.sprint_40m ?? "—"}</td>
-              <td><button class="btn btn-outline" onclick="abrirModalValores('${a.id}','${a.nome_curto.replace(/'/g, "\\'")}')">Editar valores</button></td>
-            </tr>`;
-          }).join("")}
-        </tbody>
-      </table>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Atleta</th>
+              ${TODOS_CAMPOS.map(c => `<th>${c[1]}</th>`).join('')}
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(atletas || []).map(a => {
+              const v = mapaValores[a.id] || {};
+              const cols = TODOS_CAMPOS.map(([id]) => v[id] ?? "—").map(val => `<td>${val}</td>`).join('');
+              return `<tr>
+                <td>${a.nome_curto}</td>
+                ${cols}
+                <td><button class="btn btn-outline" onclick="abrirModalValores('${a.id}','${a.nome_curto.replace(/'/g, "\\'")}')">Editar valores</button></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="card">
       <div class="card-header"><h3>Médias e ranking</h3></div>
