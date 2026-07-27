@@ -12,6 +12,20 @@ function novoPdf(titulo, subtitulo) {
   doc.text(titulo, 14, 14);
   doc.setFontSize(10);
   doc.text(subtitulo || "Núcleo SCP Castelo Branco", 14, 21);
+  // desenhar emblema simples no canto superior direito (caso não exista imagem personalizada)
+  try {
+    const emblemaX = 210 - 14 - 28; // margem direita, largura do emblema 28
+    const emblemaY = 6;
+    doc.setDrawColor(0,0,0);
+    doc.setFillColor(31, 174, 99);
+    doc.circle(emblemaX + 14, emblemaY + 14, 14, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(12);
+    doc.text('SC', emblemaX + 14, emblemaY + 18, { align: 'center', baseline: 'middle' });
+    doc.setTextColor(20,20,20);
+  } catch (e) {
+    // silencioso — se addImage falhar ou jsPDF não suportar operação, ignorar
+  }
   doc.setTextColor(20, 20, 20);
   return doc;
 }

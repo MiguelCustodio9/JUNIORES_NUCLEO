@@ -179,9 +179,14 @@ async function guardarValores(e) {
 async function gerarPdfAvaliacao() {
   const { data: av } = await supabaseClient.from("avaliacoes_fisicas").select("*").eq("id", avaliacaoAtualId).single();
   const { data: valores } = await supabaseClient.from("avaliacao_valores").select("*, atletas(nome_curto)").eq("avaliacao_id", avaliacaoAtualId);
-
+  // Gerar PDF incluindo todos os campos definidos em TODOS_CAMPOS
   const doc = novoPdf(`Avaliação Física — ${av.titulo}`, av.data_avaliacao || "");
-  tabelaPdf(doc, 34, ["Atleta", "Agach.", "Flexões", "Abdom.", "Sprint 20m", "Sprint 40m", "Shuttle"],
-    (valores || []).map(v => [v.atletas?.nome_curto ?? "—", v.agachamentos ?? "—", v.flexoes ?? "—", v.abdominais ?? "—", v.sprint_20m ?? "—", v.sprint_40m ?? "—", v.shuttle_run ?? "—"]));
+  const head = ['Atleta', ...TODOS_CAMPOS.map(c => c[1])];
+  const body = (valores || []).map(v => {
+    const linha = [v.atletas?.nome_curto ?? "—"];
+    TODOS_CAMPOS.forEach(([id]) => linha.push(v[id] ?? "—"));
+    return linha;
+  });
+  tabelaPdf(doc, 34, head, body, { styles: { fontSize: 8 } });
   guardarPdf(doc, `avaliacao_${av.titulo.replace(/\s+/g, "_")}.pdf`);
 }
