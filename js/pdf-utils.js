@@ -12,20 +12,29 @@ function novoPdf(titulo, subtitulo) {
   doc.text(titulo, 14, 14);
   doc.setFontSize(10);
   doc.text(subtitulo || "Núcleo SCP Castelo Branco", 14, 21);
-  // desenhar emblema simples no canto superior direito (caso não exista imagem personalizada)
+
+  // tentar usar logo carregado (window.logoDataUrl) — se disponível usa; senão desenha emblema simples
   try {
-    const emblemaX = 210 - 14 - 28; // margem direita, largura do emblema 28
+    const emblemaW = 28;
+    const emblemaH = 28;
+    const emblemaX = 210 - 14 - emblemaW; // margem direita
     const emblemaY = 6;
-    doc.setDrawColor(0,0,0);
-    doc.setFillColor(31, 174, 99);
-    doc.circle(emblemaX + 14, emblemaY + 14, 14, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(12);
-    doc.text('SC', emblemaX + 14, emblemaY + 18, { align: 'center', baseline: 'middle' });
-    doc.setTextColor(20,20,20);
+    if (window.logoDataUrl) {
+      // se temos dataURL, embute a imagem (espera que seja PNG/JPEG compatível)
+      doc.addImage(window.logoDataUrl, 'PNG', emblemaX, emblemaY, emblemaW, emblemaH);
+    } else {
+      doc.setDrawColor(0,0,0);
+      doc.setFillColor(31, 174, 99);
+      doc.circle(emblemaX + 14, emblemaY + 14, 14, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(12);
+      doc.text('SC', emblemaX + 14, emblemaY + 18, { align: 'center', baseline: 'middle' });
+      doc.setTextColor(20,20,20);
+    }
   } catch (e) {
     // silencioso — se addImage falhar ou jsPDF não suportar operação, ignorar
   }
+
   doc.setTextColor(20, 20, 20);
   return doc;
 }
@@ -47,3 +56,21 @@ function tabelaPdf(doc, startY, head, body, opts = {}) {
 function guardarPdf(doc, nomeFicheiro) {
   doc.save(nomeFicheiro);
 }
+
+// Preload do logo.png (se existir) em background; popula `window.logoDataUrl` com um dataURL.
+(function preloadLogo() {
+  const path = 'logo.png';
+  fetch(path).then(res => {
+    if (!res.ok) throw new Error('no-logo');
+    return res.blob();
+  }).then(blob => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  })).then(dataUrl => {
+    window.logoDataUrl = dataUrl;
+  }).catch(() => {
+    // sem logo, fallback continuará a desenhar o emblema
+  });
+})();
