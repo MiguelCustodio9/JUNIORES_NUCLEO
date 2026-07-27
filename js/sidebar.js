@@ -33,6 +33,7 @@ function renderShell(pageTitle) {
       <aside class="sidebar ${collapsed ? "collapsed" : ""}" id="sidebar">
         <div class="sidebar-top">
           <div class="brand">
+            <img src="logo.png" class="brand-logo" alt="logo" onload="this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.style.display='none'">
             <div class="brand-dot">SC</div>
             <span class="brand-name">SGC · Núcleo</span>
           </div>
@@ -43,6 +44,7 @@ function renderShell(pageTitle) {
       </aside>
       <div class="main">
         <div class="topbar">
+          <img src="logo.png" class="topbar-logo" alt="logo" onerror="this.style.display='none'">
           <h1>${pageTitle}</h1>
           <div class="user-chip">
             <div class="user-avatar">${user.nome.charAt(0)}</div>
