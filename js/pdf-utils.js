@@ -20,8 +20,11 @@ function novoPdf(titulo, subtitulo) {
     const emblemaX = 210 - 14 - emblemaW; // margem direita
     const emblemaY = 6;
     if (window.logoDataUrl) {
-      // se temos dataURL, embute a imagem (espera que seja PNG/JPEG compatível)
-      doc.addImage(window.logoDataUrl, 'PNG', emblemaX, emblemaY, emblemaW, emblemaH);
+      // detecta tipo de imagem a partir do dataURL (image/png ou image/jpeg)
+      const match = window.logoDataUrl.match(/^data:(image\/\w+);base64,/i);
+      const mime = match ? match[1].toLowerCase() : 'image/png';
+      const type = mime.includes('jpeg') || mime.includes('jpg') ? 'JPEG' : 'PNG';
+      doc.addImage(window.logoDataUrl, type, emblemaX, emblemaY, emblemaW, emblemaH);
     } else {
       doc.setDrawColor(0,0,0);
       doc.setFillColor(31, 174, 99);
