@@ -94,12 +94,29 @@ function renderShell(pageTitle) {
   if (logoInput) logoInput.addEventListener('change', (e) => {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
+    // Read file as DataURL, then downscale if necessary to avoid huge images in PDF
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = reader.result;
-      localStorage.setItem('sgc_logo_dataurl', dataUrl);
-      applyLogo(dataUrl);
-      showToast('Emblema atualizado.');
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 800; // max width/height for stored emblem
+        let { width, height } = img;
+        let scale = 1;
+        if (width > MAX_DIM || height > MAX_DIM) scale = Math.min(MAX_DIM / width, MAX_DIM / height);
+        const cw = Math.round(width * scale);
+        const ch = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,cw,ch);
+        ctx.drawImage(img, 0, 0, cw, ch);
+        const dataUrl = canvas.toDataURL('image/png', 0.92);
+        localStorage.setItem('sgc_logo_dataurl', dataUrl);
+        applyLogo(dataUrl);
+        showToast('Emblema atualizado.');
+      };
+      img.onerror = () => { showAlertModal('Não foi possível carregar a imagem selecionada.'); };
+      img.src = reader.result;
     };
     reader.readAsDataURL(f);
   });
